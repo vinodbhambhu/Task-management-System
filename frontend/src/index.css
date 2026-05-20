@@ -87,7 +87,7 @@
   }
 
   .checkbox-item {
-    @apply flex items-center gap-3 cursor-pointer group;
+    @apply flex items-center gap-3 cursor-pointer;
   }
 
   .checkbox-item input {
@@ -95,7 +95,11 @@
   }
 
   .checkbox-item-text {
-    @apply text-sm text-gray-700 group-hover:text-gray-900;
+    @apply text-sm text-gray-700;
+  }
+
+  .checkbox-item:hover .checkbox-item-text {
+    @apply text-gray-900;
   }
 
   .checkbox-item-count {
