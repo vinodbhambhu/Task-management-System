@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
@@ -12,16 +13,59 @@ const navItems = [
 ];
 
 function Overview() {
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
-  useEffect(() => { api.get('/teacher/stats').then(r => setStats(r.data)); }, []);
+  const [teacher, setTeacher] = useState(null);
+
+  useEffect(() => {
+    api.get('/teacher/stats').then(r => setStats(r.data));
+    if (user) {
+      api.get(`/admin/teachers/${user._id}`).then(r => setTeacher(r.data)).catch(() => null);
+    }
+  }, [user]);
+
   if (!stats) return <p className="text-gray-400">Loading…</p>;
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-6">Overview</h2>
+
+      {/* Teacher Info Card */}
+      {teacher && (
+        <div className="card mb-6 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-100">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900 mb-1">Your Profile</h3>
+              <div className="space-y-2">
+                {teacher.subject && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-gray-500 uppercase">Subject:</span>
+                    <span className="inline-block px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
+                      {teacher.subject}
+                    </span>
+                  </div>
+                )}
+                {teacher.classes && teacher.classes.length > 0 && (
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs font-medium text-gray-500 uppercase">Classes:</span>
+                    <div className="flex flex-wrap gap-2">
+                      {teacher.classes.map(c => (
+                        <span key={c._id} className="inline-block px-3 py-1 bg-indigo-200 text-indigo-800 rounded-full text-xs font-semibold">
+                          {c.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
           { label: 'Active tasks',  value: stats.activeTasks },
-          { label: 'My sections',   value: stats.totalSections },
           { label: 'Students',      value: stats.totalStudents },
           { label: 'Submissions',   value: stats.totalSubmissions },
         ].map(s => (
@@ -34,6 +78,7 @@ function Overview() {
     </div>
   );
 }
+
 
 function Tasks() {
   const [tasks, setTasks] = useState([]);
@@ -71,7 +116,7 @@ function Tasks() {
               <p className="text-sm text-gray-500 line-clamp-2 mb-2">{t.description}</p>
               <div className="flex gap-4 text-xs text-gray-400">
                 <span>Due: {new Date(t.dueDate).toLocaleDateString()}</span>
-                <span>Sections: {t.sections?.map(s => s.name).join(', ')}</span>
+                <span>Classes: {t.classes?.map(c => c.name).join(', ')}</span>
                 <span>{t.submissionCount} submissions</span>
               </div>
             </div>
@@ -90,22 +135,22 @@ function Tasks() {
 function CreateTask() {
   const [sections, setSections] = useState([]);
   const [form, setForm] = useState({
-    title: '', description: '', dueDate: '', sectionIds: [], allowedTypes: ['image','pdf','docx'],
+    title: '', description: '', dueDate: '', classIds: [], allowedTypes: ['image','pdf','docx'],
   });
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { api.get('/teacher/sections').then(r => setSections(r.data)); }, []);
+  useEffect(() => { api.get('/admin/classes').then(r => setSections(r.data)); }, []);
 
-  const toggleSection = (id) => {
+  const toggleClass = (id) => {
     setForm(f => ({
-      ...f, sectionIds: f.sectionIds.includes(id) ? f.sectionIds.filter(x => x !== id) : [...f.sectionIds, id],
+      ...f, classIds: f.classIds.includes(id) ? f.classIds.filter(x => x !== id) : [...f.classIds, id],
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.sectionIds.length === 0) return toast.error('Select at least one section');
+    if (form.classIds.length === 0) return toast.error('Select at least one class');
     setLoading(true);
     try {
       const fd = new FormData();
@@ -116,7 +161,7 @@ function CreateTask() {
       files.forEach(f => fd.append('attachments', f));
       await api.post('/tasks', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success('Task created!');
-      setForm({ title: '', description: '', dueDate: '', sectionIds: [], allowedTypes: ['image','pdf','docx'] });
+      setForm({ title: '', description: '', dueDate: '', classIds: [], allowedTypes: ['image','pdf','docx'] });
       setFiles([]);
     } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
     finally { setLoading(false); }
@@ -177,33 +222,33 @@ function CreateTask() {
             <p className="form-label-desc">Set when students should submit their work</p>
           </div>
 
-          {/* Sections */}
+          {/* Classes */}
           <div className="form-group">
             <label className="form-label">
               <svg className="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-2a6 6 0 0112 0v2z" />
               </svg>
-              Assign to Sections
+              Assign to Classes
             </label>
             {sections.length === 0 ? (
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-sm text-amber-800">No sections assigned to you yet. Contact your administrator.</p>
+                <p className="text-sm text-amber-800">No classes available. Contact your administrator.</p>
               </div>
             ) : (
               <div className="checkbox-group">
-                {sections.map(s => (
-                  <label key={s._id} className="checkbox-item">
-                    <input type="checkbox" checked={form.sectionIds.includes(s._id)}
-                      onChange={() => toggleSection(s._id)} />
+                {sections.map(c => (
+                  <label key={c._id} className="checkbox-item">
+                    <input type="checkbox" checked={form.classIds.includes(c._id)}
+                      onChange={() => toggleClass(c._id)} />
                     <div className="flex-1">
-                      <div className="checkbox-item-text font-medium">{s.class?.name} – {s.name}</div>
-                      <div className="checkbox-item-count">{s.students?.length || 0} students</div>
+                      <div className="checkbox-item-text font-medium">{c.name}</div>
+                      <div className="checkbox-item-count">{c.studentCount || 0} students</div>
                     </div>
                   </label>
                 ))}
               </div>
             )}
-            <p className="form-label-desc">Select which sections this task applies to</p>
+            <p className="form-label-desc">Select which classes this task applies to</p>
           </div>
 
           {/* File Upload */}
@@ -281,7 +326,7 @@ function Submissions() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-medium text-sm">{s.student?.name}</p>
-                <p className="text-xs text-gray-400">{s.task?.title} · {s.section?.name}</p>
+                <p className="text-xs text-gray-400">{s.task?.title} · {s.class?.name}</p>
                 <p className="text-xs text-gray-300 mt-0.5">{new Date(s.submittedAt).toLocaleString()}</p>
                 {s.isLate && <span className="badge-late mt-1 inline-block">Late</span>}
               </div>
@@ -312,7 +357,7 @@ function Submissions() {
                     <input className="input" type="number" min="0" max="100"
                       value={gradeForm.grade} onChange={e => setGradeForm({ ...gradeForm, grade: e.target.value })} />
                   </div>
-                  <div className="flex-[2]">
+                  <div className="flex-2">
                     <label className="text-xs text-gray-500 block mb-1">Feedback</label>
                     <input className="input" placeholder="Optional feedback…"
                       value={gradeForm.feedback} onChange={e => setGradeForm({ ...gradeForm, feedback: e.target.value })} />

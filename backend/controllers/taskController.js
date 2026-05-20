@@ -1,24 +1,23 @@
 const Task = require('../models/Task');
-const { Section } = require('../models/Class');
+const { Class } = require('../models/Class');
 const Submission = require('../models/Submission');
 
 // POST /api/tasks  (teacher)
 const createTask = async (req, res) => {
-  const { title, description, sectionIds, dueDate, allowedTypes, maxFileSize } = req.body;
+  const { title, description, classIds, dueDate, allowedTypes, maxFileSize } = req.body;
 
-  if (!title || !description || !sectionIds || !dueDate) {
-    return res.status(400).json({ message: 'title, description, sectionIds, dueDate required' });
+  if (!title || !description || !classIds || !dueDate) {
+    return res.status(400).json({ message: 'title, description, classIds, dueDate required' });
   }
 
-  const sections = Array.isArray(sectionIds) ? sectionIds : JSON.parse(sectionIds);
+  const classes = Array.isArray(classIds) ? classIds : JSON.parse(classIds);
 
-  // Verify teacher owns/teaches these sections
-  const validSections = await Section.find({
-    _id: { $in: sections },
-    teacher: req.user._id,
+  // Verify classes exist
+  const validClasses = await Class.find({
+    _id: { $in: classes },
   });
-  if (validSections.length === 0) {
-    return res.status(403).json({ message: 'No valid sections assigned to you' });
+  if (validClasses.length === 0) {
+    return res.status(404).json({ message: 'No valid classes found' });
   }
 
   const attachments = req.files ? req.files.map((f) => ({
@@ -31,7 +30,7 @@ const createTask = async (req, res) => {
     title,
     description,
     teacher:      req.user._id,
-    sections:     validSections.map((s) => s._id),
+    classes:      validClasses.map((c) => c._id),
     dueDate:      new Date(dueDate),
     allowedTypes: allowedTypes ? JSON.parse(allowedTypes) : ['image', 'pdf', 'doc', 'docx'],
     maxFileSize:  maxFileSize || 10,
@@ -40,20 +39,20 @@ const createTask = async (req, res) => {
 
   await task.populate([
     { path: 'teacher', select: 'name email' },
-    { path: 'sections', populate: { path: 'class', select: 'name' } },
+    { path: 'classes', select: 'name' },
   ]);
 
   res.status(201).json(task);
 };
 
-// GET /api/tasks  (teacher sees their own; student sees tasks for their section)
+// GET /api/tasks  (teacher sees their own; student sees tasks for their class)
 const getTasks = async (req, res) => {
   const { user } = req;
   let tasks;
 
   if (user.role === 'teacher') {
     tasks = await Task.find({ teacher: user._id })
-      .populate('sections', 'name')
+      .populate('classes', 'name')
       .sort({ createdAt: -1 });
 
     // Add submission counts
@@ -62,10 +61,10 @@ const getTasks = async (req, res) => {
       return { ...t.toObject(), submissionCount };
     }));
   } else if (user.role === 'student') {
-    if (!user.section) return res.json([]);
-    tasks = await Task.find({ sections: user.section, isActive: true })
+    if (!user.class) return res.json([]);
+    tasks = await Task.find({ classes: user.class, isActive: true })
       .populate('teacher', 'name')
-      .populate('sections', 'name')
+      .populate('classes', 'name')
       .sort({ dueDate: 1 });
 
     // Add submission status for this student
@@ -86,7 +85,7 @@ const getTasks = async (req, res) => {
 const getTask = async (req, res) => {
   const task = await Task.findById(req.params.id)
     .populate('teacher', 'name email')
-    .populate({ path: 'sections', populate: { path: 'class', select: 'name' } });
+    .populate('classes', 'name');
 
   if (!task) return res.status(404).json({ message: 'Task not found' });
   res.json(task);

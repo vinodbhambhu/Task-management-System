@@ -103,7 +103,7 @@ const SubmissionDetail = () => {
         </button>
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white shadow-lg">
+        <div className="bg-linear-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white shadow-lg">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h1 className="text-3xl font-bold mb-2">{submission.task.title}</h1>
@@ -160,7 +160,7 @@ const SubmissionDetail = () => {
             {isLate && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-6">
                 <div className="flex items-start gap-4">
-                  <div className="bg-red-100 p-3 rounded-full flex-shrink-0">
+                  <div className="bg-red-100 p-3 rounded-full shrink-0">
                     <FiAlertCircle size={24} className="text-red-600" />
                   </div>
                   <div>
@@ -188,10 +188,10 @@ const SubmissionDetail = () => {
                       href={file.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg hover:shadow-md transition group"
+                      className="flex items-center justify-between p-4 bg-linear-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg hover:shadow-md transition group"
                     >
                       <div className="flex items-center gap-3 flex-1">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition flex-shrink-0">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition shrink-0">
                           <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                           </svg>
@@ -205,7 +205,7 @@ const SubmissionDetail = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="text-blue-600 group-hover:text-blue-700 flex-shrink-0 ml-4">
+                      <div className="text-blue-600 group-hover:text-blue-700 shrink-0 ml-4">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
@@ -257,7 +257,7 @@ const SubmissionDetail = () => {
           <div className="space-y-6">
             {/* Grade Card */}
             {isGraded ? (
-              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
+              <div className="bg-linear-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
                 <p className="text-green-100 text-sm font-semibold mb-2">YOUR SCORE</p>
                 <p className="text-5xl font-bold mb-2">{submission.grade}%</p>
                 <div className="bg-white/20 rounded-lg p-3">
@@ -265,7 +265,7 @@ const SubmissionDetail = () => {
                 </div>
               </div>
             ) : (
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+              <div className="bg-linear-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
                 <div className="flex items-center justify-center h-32">
                   <div className="text-center">
                     <FiClock size={32} className="mx-auto mb-2 opacity-80" />
@@ -342,7 +342,7 @@ const SubmissionDetail = () => {
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
               <h3 className="font-bold text-gray-900 mb-4">Student Info</h3>
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 text-white flex items-center justify-center font-bold text-lg">
+                <div className="w-14 h-14 rounded-full bg-linear-to-br from-blue-400 to-purple-500 text-white flex items-center justify-center font-bold text-lg">
                   {submission.student.name?.[0]?.toUpperCase()}
                 </div>
                 <div>
@@ -351,8 +351,8 @@ const SubmissionDetail = () => {
                 </div>
               </div>
               <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-xs text-gray-600">Section</p>
-                <p className="font-semibold text-gray-900">{submission.section?.name || 'N/A'}</p>
+                <p className="text-xs text-gray-600">Class</p>
+                <p className="font-semibold text-gray-900">{submission.class?.name || 'N/A'}</p>
               </div>
             </div>
           </div>

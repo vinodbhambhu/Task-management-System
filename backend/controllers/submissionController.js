@@ -33,13 +33,13 @@ const createSubmission = async (req, res) => {
       return res.status(400).json({ message: 'Task is no longer active' });
     }
 
-    console.log('🔍 Student section:', req.user.section);
-    console.log('Task sections:', task.sections);
+    console.log('🔍 Student class:', req.user.class);
+    console.log('Task classes:', task.classes);
     
-    // Check student is in one of the task's sections
-    if (!task.sections.some((s) => s.toString() === req.user.section?.toString())) {
-      console.log('❌ Section mismatch');
-      return res.status(403).json({ message: 'This task is not assigned to your section' });
+    // Check student is in one of the task's classes
+    if (!task.classes.some((c) => c.toString() === req.user.class?.toString())) {
+      console.log('❌ Class mismatch');
+      return res.status(403).json({ message: 'This task is not assigned to your class' });
     }
 
     console.log('🔍 Checking for existing submission');
@@ -64,7 +64,7 @@ const createSubmission = async (req, res) => {
     const submission = await Submission.create({
       task:     taskId,
       student:  req.user._id,
-      section:  req.user.section,
+      class:    req.user.class,
       files,
       note:     note || '',
       isLate,
@@ -113,7 +113,7 @@ const getSubmissions = async (req, res) => {
   const submissions = await Submission.find(filter)
     .populate('task', 'title dueDate')
     .populate('student', 'name email')
-    .populate('section', 'name')
+    .populate('class', 'name')
     .sort({ createdAt: -1 });
 
   res.json(submissions);
@@ -124,7 +124,7 @@ const getSubmission = async (req, res) => {
   const sub = await Submission.findById(req.params.id)
     .populate('task')
     .populate('student', 'name email')
-    .populate('section', 'name');
+    .populate('class', 'name');
 
   if (!sub) return res.status(404).json({ message: 'Submission not found' });
 

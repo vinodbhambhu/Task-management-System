@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const { Class, Section } = require('../models/Class');
+const { Class } = require('../models/Class');
 const ActivityLog = require('../models/ActivityLog');
 
 // GET /api/admin/stats
@@ -49,7 +49,7 @@ const getAllUsers = async (req, res) => {
     { name: { $regex: search, $options: 'i' } },
     { email: { $regex: search, $options: 'i' } },
   ];
-  const users = await User.find(filter).populate('section', 'name').sort({ createdAt: -1 });
+  const users = await User.find(filter).populate('class', 'name').sort({ createdAt: -1 });
   res.json(users);
 };
 
@@ -80,87 +80,41 @@ const createClass = async (req, res) => {
 // GET /api/admin/classes
 const getClasses = async (req, res) => {
   const classes = await Class.find().sort({ name: 1 });
-  // Attach section counts
+  // Attach student counts per class
   const withCounts = await Promise.all(classes.map(async (c) => {
-    const sectionCount = await Section.countDocuments({ class: c._id });
-    const studentCount = await Section.aggregate([
-      { $match: { class: c._id } },
-      { $project: { count: { $size: '$students' } } },
-      { $group: { _id: null, total: { $sum: '$count' } } },
-    ]);
+    const studentCount = await User.countDocuments({ class: c._id, role: 'student', status: 'approved' });
     return {
       ...c.toObject(),
-      sectionCount,
-      studentCount: studentCount[0]?.total || 0,
+      studentCount,
     };
   }));
   res.json(withCounts);
 };
 
-// POST /api/admin/sections
-const createSection = async (req, res) => {
-  const { name, classId, teacherId } = req.body;
-  if (!name || !classId) return res.status(400).json({ message: 'Name and classId required' });
+// PATCH /api/admin/users/:id/assign-class
+const assignClassToStudent = async (req, res) => {
+  const { classId } = req.body;
+  if (!classId) return res.status(400).json({ message: 'classId required' });
 
   const cls = await Class.findById(classId);
   if (!cls) return res.status(404).json({ message: 'Class not found' });
 
-  const section = await Section.create({ name, class: classId, teacher: teacherId || null });
-
-  // If teacher assigned, update their section reference (optional back-ref)
-  if (teacherId) {
-    await ActivityLog.create({
-      actor: req.user._id, actorName: req.user.name,
-      action: 'Section created', category: 'class',
-      details: `${cls.name} – ${name}`,
-    });
-  }
-
-  await section.populate(['class', { path: 'teacher', select: 'name email' }]);
-  res.status(201).json(section);
-};
-
-// GET /api/admin/sections
-const getSections = async (req, res) => {
-  const { classId } = req.query;
-  const filter = classId ? { class: classId } : {};
-  const sections = await Section.find(filter)
-    .populate('class', 'name')
-    .populate('teacher', 'name email')
-    .sort({ createdAt: -1 });
-  res.json(sections);
-};
-
-// PATCH /api/admin/sections/:id/assign-teacher
-const assignTeacher = async (req, res) => {
-  const { teacherId } = req.body;
-  const section = await Section.findByIdAndUpdate(
+  const user = await User.findByIdAndUpdate(
     req.params.id,
-    { teacher: teacherId },
+    { class: classId },
     { new: true }
-  ).populate('teacher', 'name email').populate('class', 'name');
+  ).populate('class', 'name');
 
-  if (!section) return res.status(404).json({ message: 'Section not found' });
-  res.json(section);
-};
+  if (!user) return res.status(404).json({ message: 'User not found' });
 
-// PATCH /api/admin/sections/:id/add-student
-const addStudentToSection = async (req, res) => {
-  const { studentId } = req.body;
-  const student = await User.findById(studentId);
-  if (!student || student.role !== 'student') return res.status(400).json({ message: 'Invalid student' });
+  await ActivityLog.create({
+    actor: req.user._id, actorName: req.user.name,
+    action: 'Student assigned to class',
+    category: 'user',
+    details: `${user.name} assigned to ${cls.name}`,
+  });
 
-  const section = await Section.findByIdAndUpdate(
-    req.params.id,
-    { $addToSet: { students: studentId } },
-    { new: true }
-  );
-  if (!section) return res.status(404).json({ message: 'Section not found' });
-
-  // Update student's section reference
-  await User.findByIdAndUpdate(studentId, { section: req.params.id });
-
-  res.json(section);
+  res.json(user);
 };
 
 // GET /api/admin/logs
@@ -171,8 +125,75 @@ const getActivityLogs = async (req, res) => {
   res.json(logs);
 };
 
+// ─── Teachers ──────────────────────────────────────────────────
+
+// PATCH /api/admin/teachers/:id/subject
+const assignTeacherSubject = async (req, res) => {
+  const { subject } = req.body;
+  if (!subject) return res.status(400).json({ message: 'Subject required' });
+
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    { subject },
+    { new: true }
+  ).populate('classes', 'name subject');
+
+  if (!user) return res.status(404).json({ message: 'Teacher not found' });
+  if (user.role !== 'teacher') return res.status(400).json({ message: 'User is not a teacher' });
+
+  await ActivityLog.create({
+    actor: req.user._id, actorName: req.user.name,
+    action: 'Teacher subject assigned',
+    category: 'user',
+    details: `${user.name} assigned to teach ${subject}`,
+  });
+
+  res.json(user);
+};
+
+// PATCH /api/admin/teachers/:id/classes
+const assignTeacherClasses = async (req, res) => {
+  const { classIds } = req.body;
+  if (!Array.isArray(classIds)) return res.status(400).json({ message: 'classIds must be an array' });
+
+  // Verify all classes exist
+  const classes = await Class.find({ _id: { $in: classIds } });
+  if (classes.length !== classIds.length) {
+    return res.status(404).json({ message: 'One or more classes not found' });
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    { classes: classIds },
+    { new: true }
+  ).populate('classes', 'name subject');
+
+  if (!user) return res.status(404).json({ message: 'Teacher not found' });
+  if (user.role !== 'teacher') return res.status(400).json({ message: 'User is not a teacher' });
+
+  await ActivityLog.create({
+    actor: req.user._id, actorName: req.user.name,
+    action: 'Teacher classes assigned',
+    category: 'user',
+    details: `${user.name} assigned to ${classIds.length} class(es)`,
+  });
+
+  res.json(user);
+};
+
+// GET /api/admin/teachers/:id
+const getTeacher = async (req, res) => {
+  const user = await User.findById(req.params.id)
+    .populate('classes', 'name subject');
+
+  if (!user) return res.status(404).json({ message: 'Teacher not found' });
+  if (user.role !== 'teacher') return res.status(400).json({ message: 'User is not a teacher' });
+
+  res.json(user);
+};
+
 module.exports = {
   getStats, getPendingTeachers, updateUserStatus, getAllUsers, deleteUser,
-  createClass, getClasses, createSection, getSections, assignTeacher,
-  addStudentToSection, getActivityLogs,
+  createClass, getClasses, assignClassToStudent, getActivityLogs,
+  assignTeacherSubject, assignTeacherClasses, getTeacher,
 };

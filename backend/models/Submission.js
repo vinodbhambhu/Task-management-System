@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 const submissionSchema = new mongoose.Schema(
   {
-    task:    { type: mongoose.Schema.Types.ObjectId, ref: 'Task',    required: true },
-    student: { type: mongoose.Schema.Types.ObjectId, ref: 'User',    required: true },
-    section: { type: mongoose.Schema.Types.ObjectId, ref: 'Section', required: true },
+    task:    { type: mongoose.Schema.Types.ObjectId, ref: 'Task',  required: true },
+    student: { type: mongoose.Schema.Types.ObjectId, ref: 'User',  required: true },
+    class:   { type: mongoose.Schema.Types.ObjectId, ref: 'Class', required: true },
     files: [
       {
         url:          { type: String, required: true },

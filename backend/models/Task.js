@@ -5,8 +5,8 @@ const taskSchema = new mongoose.Schema(
     title:       { type: String, required: true, trim: true },
     description: { type: String, required: true },
     teacher:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    // A task can target multiple sections
-    sections:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'Section' }],
+    // A task can target multiple classes
+    classes:     [{ type: mongoose.Schema.Types.ObjectId, ref: 'Class' }],
     dueDate:     { type: Date, required: true },
     // Allowed file types students can submit
     allowedTypes: {

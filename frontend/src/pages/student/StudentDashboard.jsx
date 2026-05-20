@@ -22,7 +22,7 @@ import {
 const StudentDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [section, setSection] = useState(null);
+  const [cls, setCls] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,9 +39,9 @@ const StudentDashboard = () => {
       try {
         setLoading(true);
 
-        // Fetch section info
-        const sectionRes = await api.get('/student/my-section');
-        setSection(sectionRes.data);
+        // Fetch class info
+        const classRes = await api.get('/student/my-class');
+        setCls(classRes.data);
 
         // Fetch tasks
         const tasksRes = await api.get('/tasks');
@@ -156,31 +156,13 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        {/* Section Info Card */}
-        {section && (
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white p-6 shadow-lg">
-            <div className="grid grid-cols-2 gap-4">
+        {/* Class Info Card */}
+        {cls && (
+          <div className="bg-linear-to-br from-blue-500 to-blue-600 rounded-xl text-white p-6 shadow-lg">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <p className="text-blue-100 text-sm mb-1">Class</p>
-                <p className="text-2xl font-bold">{section.class?.name}</p>
-              </div>
-              <div>
-                <p className="text-blue-100 text-sm mb-1">Section</p>
-                <p className="text-2xl font-bold">{section.name}</p>
-              </div>
-              <div>
-                <p className="text-blue-100 text-sm mb-1">Teacher</p>
-                <p className="text-lg font-semibold flex items-center gap-2">
-                  <FiUser size={16} />
-                  {section.teacher?.name}
-                </p>
-              </div>
-              <div>
-                <p className="text-blue-100 text-sm mb-1">Students in Section</p>
-                <p className="text-lg font-semibold flex items-center gap-2">
-                  <FiUsers size={16} />
-                  {section.students?.length || 0}
-                </p>
+                <p className="text-2xl font-bold">{cls.name}</p>
               </div>
             </div>
           </div>
@@ -305,7 +287,7 @@ const StudentDashboard = () => {
                 <div
                   key={task._id}
                   className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition cursor-pointer group"
-                  onClick={() => navigate(`/task/${task._id}`)}
+                  onClick={() => navigate(`/tasks/${task._id}`)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">

@@ -10,10 +10,12 @@ const userSchema = new mongoose.Schema(
     // 'approved' → active user
     // 'rejected' / 'inactive' → blocked
     status:   { type: String, enum: ['pending', 'approved', 'rejected', 'inactive'], default: 'pending' },
-    // Student-specific: which section they belong to
-    section:  { type: mongoose.Schema.Types.ObjectId, ref: 'Section', default: null },
-    // Teacher-specific: profile info
+    // Student-specific: which class they belong to
+    class:    { type: mongoose.Schema.Types.ObjectId, ref: 'Class', default: null },
+    // Teacher-specific: subject they teach
     subject:  { type: String, trim: true, default: '' },
+    // Teacher-specific: classes assigned to teach
+    classes:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'Class' }],
   },
   { timestamps: true }
 );

@@ -1,12 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/authMiddleware');
-const { getMySections, getStats, getSectionStudents } = require('../controllers/teacherController');
+const { getStats } = require('../controllers/teacherController');
 
 router.use(protect, authorize('teacher'));
 
-router.get('/sections',                    getMySections);
-router.get('/stats',                       getStats);
-router.get('/sections/:id/students',       getSectionStudents);
+router.get('/stats', getStats);
 
 module.exports = router;
