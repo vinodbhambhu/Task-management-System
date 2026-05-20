@@ -4,47 +4,86 @@ const { cloudinary } = require('../utils/cloudinary');
 
 // POST /api/submissions  (student)
 const createSubmission = async (req, res) => {
-  const { taskId, note } = req.body;
-  if (!taskId) return res.status(400).json({ message: 'taskId required' });
-  if (!req.files || req.files.length === 0) return res.status(400).json({ message: 'At least one file required' });
+  try {
+    console.log('📨 Submission request received');
+    console.log('Files:', req.files?.length || 0);
+    console.log('Body:', req.body);
 
-  const task = await Task.findById(taskId);
-  if (!task) return res.status(404).json({ message: 'Task not found' });
-  if (!task.isActive) return res.status(400).json({ message: 'Task is no longer active' });
+    const { taskId, note } = req.body;
+    if (!taskId) {
+      console.log('❌ Missing taskId');
+      return res.status(400).json({ message: 'taskId required' });
+    }
+    if (!req.files || req.files.length === 0) {
+      console.log('❌ No files uploaded');
+      return res.status(400).json({ message: 'At least one file required' });
+    }
 
-  // Check student is in one of the task's sections
-  if (!task.sections.some((s) => s.toString() === req.user.section?.toString())) {
-    return res.status(403).json({ message: 'This task is not assigned to your section' });
+    console.log('🔍 Looking for task:', taskId);
+    const task = await Task.findById(taskId);
+    if (!task) {
+      console.log('❌ Task not found');
+      return res.status(404).json({ message: 'Task not found' });
+    }
+    
+    console.log('✅ Task found:', task.title);
+    
+    if (!task.isActive) {
+      console.log('❌ Task not active');
+      return res.status(400).json({ message: 'Task is no longer active' });
+    }
+
+    console.log('🔍 Student section:', req.user.section);
+    console.log('Task sections:', task.sections);
+    
+    // Check student is in one of the task's sections
+    if (!task.sections.some((s) => s.toString() === req.user.section?.toString())) {
+      console.log('❌ Section mismatch');
+      return res.status(403).json({ message: 'This task is not assigned to your section' });
+    }
+
+    console.log('🔍 Checking for existing submission');
+    // Check for duplicate submission
+    const existing = await Submission.findOne({ task: taskId, student: req.user._id });
+    if (existing) {
+      console.log('❌ Already submitted');
+      return res.status(409).json({ message: 'Already submitted. Use update endpoint.' });
+    }
+
+    const isLate = new Date() > new Date(task.dueDate);
+    console.log('📅 Is late:', isLate);
+    
+    const files = req.files.map((f) => ({
+      url:          f.path || `/uploads/${f.filename}`, // Local path or Cloudinary URL
+      originalName: f.originalname,
+      resourceType: f.mimetype.startsWith('image/') ? 'image' : 'raw',
+      publicId:     f.filename,
+    }));
+
+    console.log('💾 Creating submission in DB');
+    const submission = await Submission.create({
+      task:     taskId,
+      student:  req.user._id,
+      section:  req.user.section,
+      files,
+      note:     note || '',
+      isLate,
+      submittedAt: new Date(),
+    });
+
+    console.log('✅ Submission created:', submission._id);
+    
+    await submission.populate([
+      { path: 'task', select: 'title dueDate' },
+      { path: 'student', select: 'name email' },
+    ]);
+
+    console.log('✅ Submission response sent');
+    res.status(201).json(submission);
+  } catch (err) {
+    console.error('🚨 Submission error:', err.message);
+    res.status(500).json({ message: 'Submission failed', error: err.message });
   }
-
-  // Check for duplicate submission
-  const existing = await Submission.findOne({ task: taskId, student: req.user._id });
-  if (existing) return res.status(409).json({ message: 'Already submitted. Use update endpoint.' });
-
-  const isLate = new Date() > new Date(task.dueDate);
-  const files = req.files.map((f) => ({
-    url:          f.path,
-    originalName: f.originalname,
-    resourceType: f.mimetype.startsWith('image/') ? 'image' : 'raw',
-    publicId:     f.filename,
-  }));
-
-  const submission = await Submission.create({
-    task:     taskId,
-    student:  req.user._id,
-    section:  req.user.section,
-    files,
-    note:     note || '',
-    isLate,
-    submittedAt: new Date(),
-  });
-
-  await submission.populate([
-    { path: 'task', select: 'title dueDate' },
-    { path: 'student', select: 'name email' },
-  ]);
-
-  res.status(201).json(submission);
 };
 
 // GET /api/submissions  (teacher: filter by task; student: own submissions)

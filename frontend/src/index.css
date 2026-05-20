@@ -1,1 +1,104 @@
 @import "tailwindcss";
+
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply px-4 py-2.5 bg-blue-500 text-white font-medium rounded-lg 
+           hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg 
+           hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2.5 bg-red-100 text-red-600 font-medium rounded-lg 
+           hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-success {
+    @apply px-4 py-2.5 bg-green-100 text-green-600 font-medium rounded-lg 
+           hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-lg border border-gray-200 p-5 shadow-sm
+           hover:shadow-md transition-shadow duration-200;
+  }
+
+  /* Badges */
+  .badge-primary {
+    @apply inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full;
+  }
+
+  .badge-inactive {
+    @apply inline-block px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full;
+  }
+
+  .badge-late {
+    @apply inline-block px-2.5 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full;
+  }
+
+  .badge-graded {
+    @apply inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full;
+  }
+
+  .badge-submitted {
+    @apply inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full;
+  }
+
+  .badge-approved {
+    @apply inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full;
+  }
+
+  .badge-pending {
+    @apply inline-block px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full;
+  }
+
+  .badge-rejected {
+    @apply inline-block px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full;
+  }
+
+  /* Input */
+  .input {
+    @apply w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-white
+           text-gray-900 placeholder-gray-400
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+           disabled:bg-gray-50 disabled:cursor-not-allowed;
+  }
+
+  /* Form Styling */
+  .form-group {
+    @apply space-y-2;
+  }
+
+  .form-label {
+    @apply text-sm font-medium text-gray-700 block;
+  }
+
+  .form-label-desc {
+    @apply text-xs text-gray-500 block mt-0.5;
+  }
+
+  .checkbox-group {
+    @apply space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200;
+  }
+
+  .checkbox-item {
+    @apply flex items-center gap-3 cursor-pointer group;
+  }
+
+  .checkbox-item input {
+    @apply w-4 h-4 text-blue-500 rounded border-gray-300 cursor-pointer;
+  }
+
+  .checkbox-item-text {
+    @apply text-sm text-gray-700 group-hover:text-gray-900;
+  }
+
+  .checkbox-item-count {
+    @apply text-xs text-gray-500;
+  }
+}

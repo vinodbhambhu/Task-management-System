@@ -39,7 +39,11 @@ const register = async (req, res) => {
     });
   }
 
-  res.status(201).json({ token: generateToken(user._id), user });
+  const token = generateToken(user._id);
+  console.log('✅ Student registered:', email);
+  console.log('🔐 Generated token:', token.substring(0, 20) + '...');
+  
+  res.status(201).json({ token, user });
 };
 
 // POST /api/auth/login
@@ -63,7 +67,11 @@ const login = async (req, res) => {
     return res.status(403).json({ message: 'Account is inactive. Contact admin.' });
   }
 
-  res.json({ token: generateToken(user._id), user });
+  const token = generateToken(user._id);
+  console.log('✅ Login successful:', email);
+  console.log('🔐 Generated token:', token.substring(0, 20) + '...');
+  
+  res.json({ token, user });
 };
 
 // GET /api/auth/me

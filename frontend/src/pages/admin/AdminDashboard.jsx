@@ -75,8 +75,18 @@ function Approvals() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => handle(t._id, 'approved')} className="btn-primary text-xs px-3 py-1.5">Approve</button>
-                <button onClick={() => handle(t._id, 'rejected')} className="btn-danger text-xs px-3 py-1.5">Reject</button>
+                <button onClick={() => handle(t._id, 'approved')} className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Approve
+                </button>
+                <button onClick={() => handle(t._id, 'rejected')} className="btn-danger text-xs px-3 py-1.5 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Reject
+                </button>
               </div>
             </div>
           ))}
@@ -196,11 +206,21 @@ function Classes() {
       <h2 className="text-xl font-semibold mb-6">Classes & Sections</h2>
       <div className="grid md:grid-cols-2 gap-6">
         <div className="card">
-          <h3 className="font-medium mb-4">Create class</h3>
+          <h3 className="font-medium mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Create class
+          </h3>
           <form onSubmit={addClass} className="flex gap-2">
             <input className="input flex-1" placeholder="e.g. Grade 10" value={newClass}
               onChange={e => setNewClass(e.target.value)} required />
-            <button className="btn-primary px-4">Add</button>
+            <button className="btn-primary px-4 flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add
+            </button>
           </form>
           <div className="mt-4 space-y-2">
             {classes.map(c => (
@@ -213,7 +233,12 @@ function Classes() {
         </div>
 
         <div className="card">
-          <h3 className="font-medium mb-4">Create section</h3>
+          <h3 className="font-medium mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Create section
+          </h3>
           <form onSubmit={addSection} className="space-y-3">
             <select className="input" value={newSection.classId}
               onChange={e => setNewSection({ ...newSection, classId: e.target.value })} required>
@@ -227,7 +252,12 @@ function Classes() {
               <option value="">Assign teacher (optional)</option>
               {teachers.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
             </select>
-            <button className="btn-primary w-full">Create section</button>
+            <button className="btn-primary w-full flex items-center justify-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Create section</span>
+            </button>
           </form>
           <div className="mt-4 space-y-2">
             {sections.map(s => (

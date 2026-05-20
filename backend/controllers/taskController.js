@@ -22,7 +22,7 @@ const createTask = async (req, res) => {
   }
 
   const attachments = req.files ? req.files.map((f) => ({
-    url:          f.path,
+    url:          f.path || `/uploads/${f.filename}`, // Local path or Cloudinary URL
     originalName: f.originalname,
     resourceType: f.mimetype.startsWith('image/') ? 'image' : 'raw',
   })) : [];

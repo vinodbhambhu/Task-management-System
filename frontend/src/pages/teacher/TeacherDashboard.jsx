@@ -52,7 +52,12 @@ function Tasks() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">My Tasks</h2>
-        <Link to="/teacher/create" className="btn-primary">+ New task</Link>
+        <Link to="/teacher/create" className="btn-primary flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Create Task</span>
+        </Link>
       </div>
       <div className="space-y-3">
         {tasks.map(t => (
@@ -118,50 +123,133 @@ function CreateTask() {
   };
 
   return (
-    <div className="max-w-2xl">
-      <h2 className="text-xl font-semibold mb-6">Create New Task</h2>
+    <div className="max-w-3xl">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-3 bg-blue-100 rounded-lg">
+          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Create New Task</h2>
+          <p className="text-sm text-gray-500 mt-1">Add a new assignment for your students</p>
+        </div>
+      </div>
+
       <div className="card">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="text-sm text-gray-600 block mb-1">Task title</label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Task Title */}
+          <div className="form-group">
+            <label className="form-label">
+              <svg className="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              Task Title
+            </label>
             <input className="input" placeholder="e.g. Chapter 3 Essay" value={form.title}
               onChange={e => setForm({ ...form, title: e.target.value })} required />
+            <p className="form-label-desc">Give your task a clear, descriptive name</p>
           </div>
-          <div>
-            <label className="text-sm text-gray-600 block mb-1">Description / Instructions</label>
-            <textarea className="input min-h-[100px] resize-y" placeholder="Describe what students need to do…"
+
+          {/* Description */}
+          <div className="form-group">
+            <label className="form-label">
+              <svg className="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Description & Instructions
+            </label>
+            <textarea className="input min-h-32 resize-y" placeholder="Describe what students need to do, submission requirements, grading criteria…"
               value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required />
+            <p className="form-label-desc">Provide detailed instructions for your students</p>
           </div>
-          <div>
-            <label className="text-sm text-gray-600 block mb-1">Due date</label>
+
+          {/* Due Date */}
+          <div className="form-group">
+            <label className="form-label">
+              <svg className="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Due Date & Time
+            </label>
             <input className="input" type="datetime-local" value={form.dueDate}
               onChange={e => setForm({ ...form, dueDate: e.target.value })} required />
+            <p className="form-label-desc">Set when students should submit their work</p>
           </div>
-          <div>
-            <label className="text-sm text-gray-600 block mb-2">Assign to sections</label>
-            {sections.length === 0 && <p className="text-sm text-amber-600">No sections assigned to you yet.</p>}
-            <div className="space-y-2">
-              {sections.map(s => (
-                <label key={s._id} className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={form.sectionIds.includes(s._id)}
-                    onChange={() => toggleSection(s._id)} className="rounded" />
-                  <span className="text-sm">{s.class?.name} – {s.name}
-                    <span className="text-gray-400 ml-1">({s.students?.length} students)</span>
-                  </span>
-                </label>
-              ))}
+
+          {/* Sections */}
+          <div className="form-group">
+            <label className="form-label">
+              <svg className="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-2a6 6 0 0112 0v2z" />
+              </svg>
+              Assign to Sections
+            </label>
+            {sections.length === 0 ? (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm text-amber-800">No sections assigned to you yet. Contact your administrator.</p>
+              </div>
+            ) : (
+              <div className="checkbox-group">
+                {sections.map(s => (
+                  <label key={s._id} className="checkbox-item">
+                    <input type="checkbox" checked={form.sectionIds.includes(s._id)}
+                      onChange={() => toggleSection(s._id)} />
+                    <div className="flex-1">
+                      <div className="checkbox-item-text font-medium">{s.class?.name} – {s.name}</div>
+                      <div className="checkbox-item-count">{s.students?.length || 0} students</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+            <p className="form-label-desc">Select which sections this task applies to</p>
+          </div>
+
+          {/* File Upload */}
+          <div className="form-group">
+            <label className="form-label">
+              <svg className="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Reference Files (Optional)
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors">
+              <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={e => setFiles(Array.from(e.target.files))}
+                className="hidden" id="file-upload" />
+              <label htmlFor="file-upload" className="cursor-pointer block text-center">
+                <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <p className="text-sm font-medium text-gray-700">Click to upload or drag and drop</p>
+                <p className="text-xs text-gray-500 mt-1">PDF, Images, Word documents up to 10MB</p>
+              </label>
             </div>
+            {files.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {files.map((f, i) => (
+                  <span key={i} className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {f.name}
+                  </span>
+                ))}
+              </div>
+            )}
+            <p className="form-label-desc">Attach resource files for students to reference</p>
           </div>
-          <div>
-            <label className="text-sm text-gray-600 block mb-1">Attach reference files (optional)</label>
-            <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-              onChange={e => setFiles(Array.from(e.target.files))}
-              className="text-sm text-gray-600 file:mr-3 file:btn-secondary file:rounded-lg file:px-3 file:py-1.5 file:text-xs file:border-0 file:bg-gray-100 cursor-pointer" />
-            {files.length > 0 && <p className="text-xs text-gray-400 mt-1">{files.length} file(s) selected</p>}
+
+          {/* Submit Button */}
+          <div className="flex gap-3 pt-4">
+            <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2 py-3" disabled={loading}>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>{loading ? 'Creating…' : 'Create Task'}</span>
+            </button>
           </div>
-          <button className="btn-primary w-full" disabled={loading}>
-            {loading ? 'Creating…' : 'Create task'}
-          </button>
         </form>
       </div>
     </div>
